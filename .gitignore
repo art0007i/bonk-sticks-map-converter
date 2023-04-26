@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # converted maps live here, don't want to commit those
-/static/
+/static/*

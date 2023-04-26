@@ -12,6 +12,8 @@ import oldfs from 'fs';
 import path from 'path';
 import { SearchOptions, SortOrder } from 'beatsaver-api/lib/api/search';
 
+// kind of like Promise.all, but catches errors and puts them into the results array
+// useful when you are waiting for a bunch of stuff that may or may not fail, and that's ok
 async function CoolPromiseAll<T>(promises: Promise<T>[]): Promise<(T|Error)[]>
 {
   return await Promise.all(
@@ -26,6 +28,11 @@ async function CoolPromiseAll<T>(promises: Promise<T>[]): Promise<(T|Error)[]>
 }
 
 const OUT_DIR = "./static";
+
+if (!oldfs.existsSync(OUT_DIR)){
+    oldfs.mkdirSync(OUT_DIR);
+}
+
 const app = express();
 const port = 5901;
 const api = new BeatSaverAPI({
@@ -73,7 +80,7 @@ interface SimpleMapInfo {
 
   // stats
   //downvotes: number;
-  upvotes: number;
+  upvotes: number;  // the simplify function will make this var the sum of down and up votes
 
   // version
   coverURL: string;
@@ -139,9 +146,6 @@ app.get('/search', (req, res) => {
   let searchOpts: SearchOptions = {
     sortOrder: order,
     q: search,
-    
-    //noodle: false,
-    //me: false,
   }
 
   if(!unsupported){
@@ -282,7 +286,7 @@ app.get('/:id/mapdata', async (req, res) => {
     }
     const promises = [];
     promises.push(fs.writeFile(path.join(outPath,"map.json"), JSON.stringify(neosMapFile)));
-    // I'll call it .egg cuz fuck you that's why lmaooo (neos doesn't seem to care about extensions much anyway)
+    // I'll call it .egg cuz neos doesn't seem to care about extensions much anyway
     promises.push(fs.writeFile(path.join(outPath, "song.egg"), filesBuffers[neosMapFile.songFilename]));
     if(filesBuffers[neosMapFile.coverImage]){
       //const coverExtension = path.extname(neosMapFile.coverImage)
